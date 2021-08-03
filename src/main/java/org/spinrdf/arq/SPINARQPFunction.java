@@ -63,7 +63,7 @@ import org.spinrdf.vocabulary.SPIN;
  * @author Holger Knublauch
  */
 public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFunctionFactory {
-	
+
 	public static final String SELECT_STAR_NOT_SUPPORTED_IN_MAGIC_PROPERTIES = "SELECT * not supported in magic properties";
 
 	public static final String SELECT_WITH_EXPRESSIONS_NOT_SUPPORTED_IN_MAGIC_PROPERTIES = "SELECT with expressions not supported in magic properties";
@@ -71,15 +71,15 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 	private org.apache.jena.query.Query arqQuery;
 
 	private String queryString;
-	
+
 	private List<String> objectVarNames = new ArrayList<String>();
 
-	
+
 	public SPINARQPFunction(Function functionCls) {
-		
+
 		Select spinQuery = (Select) functionCls.getBody();
 		queryString = ARQFactory.get().createCommandString(spinQuery);
-		
+
 		List<String> resultVariables = spinQuery.getResultVariableNames();
 		if(resultVariables.isEmpty()) {
 			throw new IllegalArgumentException(SELECT_STAR_NOT_SUPPORTED_IN_MAGIC_PROPERTIES);
@@ -94,14 +94,14 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 		}
 		int selectStart = queryString.indexOf("SELECT ");
 		int eol = queryString.indexOf('\n', selectStart);
-		
+
 		StringBuffer sb = new StringBuffer(queryString.substring(0, eol));
 		for(Argument arg : functionCls.getArguments(true)) {
 			sb.append(" ?");
 			sb.append(arg.getVarName());
 		}
 		sb.append(queryString.substring(eol));
-			
+
 		try {
 			arqQuery = ARQFactory.get().createQuery(sb.toString());
 		}
@@ -110,22 +110,22 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 		}
 	}
 
-	
+
 	public PropertyFunction create(String arg0) {
 		return this;
 	}
 
-	
+
 	@Override
 	public QueryIterator exec(Binding binding, PropFuncArg argSubject, Node predicate,
 			PropFuncArg argObject, ExecutionContext context) {
 
 		argObject = Substitute.substitute(argObject, binding);
 		argSubject = Substitute.substitute(argSubject, binding);
-		
-		ExprList subjectExprList = argSubject.asExprList(argSubject);
-		ExprList objectExprList = argObject.asExprList(argObject);
-		
+
+		ExprList subjectExprList = argSubject.asExprList();
+		ExprList objectExprList = argObject.asExprList();
+
 		QueryIterConcat existingValues = null;
 		MagicPropertyPolicy.Policy policy = MagicPropertyPolicy.Policy.QUERY_RESULTS_ONLY;
 		// Handle cases with one argument on both sides (S, P, O)
@@ -133,7 +133,7 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 			Expr subject = subjectExprList.get(0);
 			Expr object = objectExprList.get(0);
 			if(subject.isVariable() || object.isVariable()) {
-				
+
 				Node matchSubject = null;
 				if(subject.isConstant()) {
 					Node n = subject.getConstant().asNode();
@@ -141,12 +141,12 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 						matchSubject = n;
 					}
 				}
-				
+
 				Node matchObject = null;
 				if(object.isConstant()) {
 					matchObject = object.getConstant().asNode();
 				}
-				
+
 				Graph queryGraph = context.getActiveGraph();
 				policy = MagicPropertyPolicy.get().getPolicy(predicate.getURI(), queryGraph, matchSubject, matchObject);
 
@@ -170,9 +170,9 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 				}
 			}
 		}
-		
+
 		if(policy != MagicPropertyPolicy.Policy.TRIPLES_ONLY) {
-			
+
 			Graph activeGraph = context.getActiveGraph();
 			if(activeGraph == null) {
 				activeGraph = JenaUtil.createDefaultGraph();
@@ -183,7 +183,7 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 			if(t != null) {
 				bindings.add(SPIN.THIS_VAR_NAME, model.asRDFNode(t));
 			}
-	
+
 			// Map object expressions to original objectVarNames
 			Map<String,Var> vars = new HashMap<String,Var>();
 			for(int i = 0; i < objectVarNames.size() && i < objectExprList.size(); i++) {
@@ -200,7 +200,7 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 		        	}
 				}
 			}
-			
+
 			// Map subject expressions to arg1 etc
 			for(int i = 0; i < subjectExprList.size(); i++) {
 				String subjectVarName = "arg" + (i + 1);
@@ -216,7 +216,7 @@ public class SPINARQPFunction extends PropertyFunctionBase implements PropertyFu
 		        	}
 				}
 			}
-			
+
 			// Execute SELECT query and wrap it with a custom iterator
 			Dataset newDataset = new DatasetWithDifferentDefaultModel(model, DatasetImpl.wrap(context.getDataset()));
 			QueryExecution qexec = ARQFactory.get().createQueryExecution(arqQuery, newDataset, bindings);

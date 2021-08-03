@@ -42,7 +42,7 @@ public abstract class AbstractFunction implements Function {
 	public void build(String uri, ExprList args) {
 	}
 
-	
+
 	public NodeValue exec(Binding binding, ExprList args, String uri, FunctionEnv env) {
 		Node[] nodes = new Node[args.size()];
 		for(int i = 0; i < args.size(); i++) {
@@ -52,7 +52,7 @@ public abstract class AbstractFunction implements Function {
 	            	NodeValue x = e.eval(binding, env);
 	            	if (x != null) {
 						nodes[i] = x.asNode();
-					} 
+					}
             	}
             }
             catch(ExprEvalException ex) {
@@ -65,7 +65,7 @@ public abstract class AbstractFunction implements Function {
 		if(SPINStatisticsManager.get().isRecording() && SPINStatisticsManager.get().isRecordingNativeFunctions()) {
 			StringBuffer sb = new StringBuffer();
 			sb.append("SPARQL Function ");
-			sb.append(SSE.format(NodeFactory.createURI(uri), env.getActiveGraph().getPrefixMapping()));
+			sb.append(SSE.str(NodeFactory.createURI(uri), env.getActiveGraph().getPrefixMapping()));
 			sb.append("(");
 			for(int i = 0; i < nodes.length; i++) {
 				if(i > 0) {
@@ -75,7 +75,7 @@ public abstract class AbstractFunction implements Function {
 					sb.append("?arg" + (i + 1));
 				}
 				else {
-					sb.append(SSE.format(nodes[i], env.getActiveGraph().getPrefixMapping()));
+					sb.append(SSE.str(nodes[i], env.getActiveGraph().getPrefixMapping()));
 				}
 			}
 			sb.append(")");
@@ -93,7 +93,7 @@ public abstract class AbstractFunction implements Function {
 			}
 			finally {
 				long endTime = System.currentTimeMillis();
-				SPINStatistics stats = new SPINStatistics(sb.toString(), 
+				SPINStatistics stats = new SPINStatistics(sb.toString(),
 						"(Native built-in function)", endTime - startTime, startTime, NodeFactory.createURI(uri));
 				SPINStatisticsManager.get().addSilently(Collections.singleton(stats));
 			}
@@ -103,7 +103,7 @@ public abstract class AbstractFunction implements Function {
 			return exec(nodes, env);
 		}
 	}
-	
-	
+
+
 	protected abstract NodeValue exec(Node[] nodes, FunctionEnv env);
 }

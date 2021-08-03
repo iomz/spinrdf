@@ -64,9 +64,9 @@ import org.spinrdf.vocabulary.SPIN;
  * on the spin:constraints defined on the types of those instances.
  */
 public class SPINConstraints {
-	
+
 	private static List<TemplateCall> NO_FIXES = Collections.emptyList();
-	
+
 
 	public static void addConstraintViolations(List<ConstraintViolation> results, SPINInstance instance, Property predicate, boolean matchValue, List<SPINStatistics> stats, ProgressMonitor monitor) {
 		if(predicate == null) {
@@ -86,7 +86,7 @@ public class SPINConstraints {
 
 	/**
 	 * Creates an RDF representation (instances of spin:ConstraintViolation) from a
-	 * collection of ConstraintViolation Java objects. 
+	 * collection of ConstraintViolation Java objects.
 	 * @param cvs  the violation objects
 	 * @param result  the Model to add the results to
 	 * @param createSource  true to also create the spin:violationSource
@@ -121,7 +121,7 @@ public class SPINConstraints {
 		}
 	}
 
-	
+
 	private static void addConstructedProblemReports(
 			Model cm,
 			List<ConstraintViolation> results,
@@ -134,14 +134,14 @@ public class SPINConstraints {
 		while(it.hasNext()) {
 			Statement s = it.nextStatement();
 			Resource vio = s.getSubject();
-			
+
 			Resource root = null;
 			Statement rootS = vio.getProperty(SPIN.violationRoot);
 			if(rootS != null && rootS.getObject().isResource()) {
 				root = rootS.getResource().inModel(model);
 			}
 			if(matchRoot == null || matchRoot.equals(root)) {
-				
+
 				Statement labelS = vio.getProperty(RDFS.label);
 				if(labelS != null && labelS.getObject().isLiteral()) {
 					label = labelS.getString();
@@ -149,7 +149,7 @@ public class SPINConstraints {
 				else if(label == null) {
 					label = "SPIN constraint at " + SPINLabels.get().getLabel(atClass);
 				}
-				
+
 				List<SimplePropertyPath> paths = getViolationPaths(model, vio, root);
 				List<TemplateCall> fixes = getFixes(cm, model, vio);
 				results.add(createConstraintViolation(paths, JenaUtil.getProperty(vio, SPIN.violationValue),
@@ -160,18 +160,18 @@ public class SPINConstraints {
 
 
 	public static void addQueryResults(List<ConstraintViolation> results, QueryOrTemplateCall qot, Resource resource, boolean matchValue, List<SPINStatistics> stats, ProgressMonitor monitor) {
-		
+
 		QuerySolutionMap arqBindings = new QuerySolutionMap();
-		
+
 		String queryString = ARQFactory.get().createCommandString(qot.getQuery());
 		arqBindings.add(SPIN.THIS_VAR_NAME, resource);
-		
+
 		Query arq = ARQFactory.get().createQuery(queryString);
 		Model model = resource.getModel();
 		QueryExecution qexec = ARQFactory.get().createQueryExecution(arq, model);
-		
+
 		qexec.setInitialBinding(arqBindings);
-		
+
 		long startTime = System.currentTimeMillis();
 		if(arq.isAskType()) {
 			if(qexec.execAsk() != matchValue) {
@@ -251,12 +251,12 @@ public class SPINConstraints {
 						}
 					}
 				}
-				
+
 				Model model = resource.getModel();
 				Query arq = ARQFactory.get().createQuery(spinQuery);
 				QueryExecution qexec = ARQFactory.get().createQueryExecution(arq, model);
 				qexec.setInitialBinding(bindings);
-				
+
 				if(spinQuery instanceof Ask) {
 					if(qexec.execAsk() != matchValue) {
 						List<SimplePropertyPath> paths = getPropertyPaths(resource, spinQuery.getWhere(), templateCall.getArgumentsMapByProperties());
@@ -276,7 +276,7 @@ public class SPINConstraints {
 		}
 	}
 
-	
+
 	/**
 	 * Checks all spin:constraints for a given Resource.
 	 * @param resource  the instance to run constraint checks on
@@ -287,11 +287,11 @@ public class SPINConstraints {
 		return check(resource, SPIN.constraint, new LinkedList<SPINStatistics>(), monitor);
 	}
 
-	
+
 	/**
 	 * Checks all spin:constraints for a given Resource.
 	 * @param resource  the instance to run constraint checks on
-	 * @param predicate  the system property, e.g. a sub-property of spin:constraint 
+	 * @param predicate  the system property, e.g. a sub-property of spin:constraint
 	 *                   or null for the default (spin:constraint)
 	 * @param monitor  an (optional) progress monitor (currently ignored)
 	 * @return a List of ConstraintViolations (empty if all is OK)
@@ -300,7 +300,7 @@ public class SPINConstraints {
 		return check(resource, predicate, new LinkedList<SPINStatistics>(), monitor);
 	}
 
-	
+
 	/**
 	 * Checks all spin:constraints for a given Resource.
 	 * @param resource  the instance to run constraint checks on
@@ -312,7 +312,7 @@ public class SPINConstraints {
 	 */
 	public static List<ConstraintViolation> check(Resource resource, Property predicate, List<SPINStatistics> stats, ProgressMonitor monitor) {
 		List<ConstraintViolation> results = new LinkedList<ConstraintViolation>();
-		
+
 		// If spin:imports exist, then continue with the union model
 		try {
 			Model importsModel = SPINImports.get().getImportsModel(resource.getModel());
@@ -323,16 +323,16 @@ public class SPINConstraints {
 		catch(IOException ex) {
 			ex.printStackTrace();
 		}
-		
+
 		SPINInstance instance = resource.as(SPINInstance.class);
 		addConstraintViolations(results, instance, predicate, false, stats, monitor);
 		return results;
 	}
-	
+
 
 	/**
 	 * Checks all instances in a given Model against all spin:constraints and
-	 * returns a List of constraint violations. 
+	 * returns a List of constraint violations.
 	 * A ProgressMonitor can be provided to enable the user to get intermediate
 	 * status reports and to cancel the operation.
 	 * @param model  the Model to operate on
@@ -342,11 +342,11 @@ public class SPINConstraints {
 	public static List<ConstraintViolation> check(Model model, ProgressMonitor monitor) {
 		return check(model, SPIN.constraint, null, monitor);
 	}
-	
+
 
 	/**
 	 * Checks all instances in a given Model against all spin:constraints and
-	 * returns a List of constraint violations. 
+	 * returns a List of constraint violations.
 	 * A ProgressMonitor can be provided to enable the user to get intermediate
 	 * status reports and to cancel the operation.
 	 * @param model  the Model to operate on
@@ -357,10 +357,10 @@ public class SPINConstraints {
 		return check(model, predicate, null, monitor);
 	}
 
-	
+
 	/**
 	 * Checks all instances in a given Model against all spin:constraints and
-	 * returns a List of constraint violations. 
+	 * returns a List of constraint violations.
 	 * A ProgressMonitor can be provided to enable the user to get intermediate
 	 * status reports and to cancel the operation.
 	 * @param model  the Model to operate on
@@ -374,8 +374,8 @@ public class SPINConstraints {
 		run(model, predicate, results, stats, monitor);
 		return results;
 	}
-	
-	
+
+
 	private static synchronized Query convertAskToConstruct(Query ask, org.spinrdf.model.Query spinQuery, String label) {
 		Syntax oldSyntax = Syntax.defaultSyntax; // Work-around to bug in ARQ
 		try {
@@ -383,7 +383,7 @@ public class SPINConstraints {
 			Query construct = org.apache.jena.query.QueryFactory.create(ask);
 			construct.setQueryConstructType();
 			BasicPattern bgp = new BasicPattern();
-			Node cv = NodeFactory.createAnon();
+			Node cv = NodeFactory.createBlankNode();
 			bgp.add(Triple.create(cv, RDF.type.asNode(), SPIN.ConstraintViolation.asNode()));
 			Node thisVar = Var.alloc(SPIN.THIS_VAR_NAME);
 			bgp.add(Triple.create(cv, SPIN.violationRoot.asNode(), thisVar));
@@ -414,9 +414,9 @@ public class SPINConstraints {
 
 	private static ConstraintViolation createConstraintViolation(Collection<SimplePropertyPath> paths,
 			RDFNode value,
-			Collection<TemplateCall> fixes, 
-			Resource instance, 
-			String message, 
+			Collection<TemplateCall> fixes,
+			Resource instance,
+			String message,
 			Resource source,
 			Resource level) {
 		ConstraintViolation result = new ConstraintViolation(instance, paths, fixes, message, source);
@@ -468,8 +468,8 @@ public class SPINConstraints {
 			return Collections.emptyList();
 		}
 	}
-	
-	
+
+
 	private static Resource getSource(QueryOrTemplateCall qot) {
 		if(qot.getQuery() != null) {
 			return qot.getQuery();
@@ -502,8 +502,8 @@ public class SPINConstraints {
 		}
 		return paths;
 	}
-	
-	
+
+
 	/**
 	 * Checks if a given property is a SPIN constraint property.
 	 * This is defined as a property that is spin:constraint or a sub-property of it.
@@ -518,17 +518,17 @@ public class SPINConstraints {
 			return true;
 		}
 		else {
-			return false; 
+			return false;
 		}
 	}
 
-	
+
 	private static void run(Model model, Property predicate, List<ConstraintViolation> results, List<SPINStatistics> stats, ProgressMonitor monitor) {
-		
+
 		if(predicate == null) {
 			predicate = SPIN.constraint;
 		}
-		
+
 		// If spin:imports exist then continue with the union model
 		try {
 			model = SPINImports.get().getImportsModel(model);
@@ -578,8 +578,8 @@ public class SPINConstraints {
 			}
 		}
 	}
-	
-	
+
+
 	private static void runQueryOnClass(List<ConstraintViolation> results, Query arq, org.spinrdf.model.Query spinQuery, String label, Model model, Resource cls, Map<String,RDFNode> initialBindings, boolean thisUnbound, boolean thisDeep, Resource source, List<SPINStatistics> stats, ProgressMonitor monitor) {
 		if(thisUnbound || SPINUtil.isRootClass(cls) || model.contains(null, RDF.type, cls)) {
 			QuerySolutionMap arqBindings = new QuerySolutionMap();
@@ -592,11 +592,11 @@ public class SPINConstraints {
 					arqBindings.add(varName, value);
 				}
 			}
-			
+
 			if(monitor != null) {
 				monitor.subTask("Checking SPIN constraint on " + SPINLabels.get().getLabel(cls) + (label != null ? ": " + label : ""));
 			}
-			
+
 			long startTime = System.currentTimeMillis();
 			Model cm = JenaUtil.createDefaultModel();
 			if(thisDeep && !thisUnbound) {
@@ -614,7 +614,7 @@ public class SPINConstraints {
 				qexec.execConstruct(cm);
 				qexec.close();
 			}
-			
+
 			long endTime = System.currentTimeMillis();
 			if(stats != null) {
 				long duration = endTime - startTime;

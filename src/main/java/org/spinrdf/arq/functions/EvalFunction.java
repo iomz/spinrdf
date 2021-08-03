@@ -56,13 +56,13 @@ import org.spinrdf.vocabulary.SPIN;
 
 /**
  * The SPARQL function spin:eval.
- * 
+ *
  * The first argument is a SPIN expression, e.g. a function call or variable.
  * All other arguments must come in pairs, alternating between an argument property
  * and its value, e.g.
- * 
+ *
  *  	spin:eval(ex:myInstance, sp:arg3, "value")
- *  
+ *
  * The expression will be evaluated with all bindings from the property-value pairs above.
  */
 public class EvalFunction extends AbstractFunction implements FunctionFactory {
@@ -79,7 +79,7 @@ public class EvalFunction extends AbstractFunction implements FunctionFactory {
 				sb.append("?arg" + (i + 1));
 			}
 			else {
-				sb.append(SSE.format(nodes[i], env.getActiveGraph().getPrefixMapping()));
+				sb.append(SSE.str(nodes[i], env.getActiveGraph().getPrefixMapping()));
 			}
 		}
 		sb.append(")");
@@ -87,18 +87,18 @@ public class EvalFunction extends AbstractFunction implements FunctionFactory {
 			sb.append(" = ");
 			sb.append(FmtUtils.stringForNode(result.asNode(), env.getActiveGraph().getPrefixMapping()));
 		}
-		SPINStatistics stats = new SPINStatistics(sb.toString(), 
+		SPINStatistics stats = new SPINStatistics(sb.toString(),
 				"(spin:eval)", endTime - startTime, startTime, SPIN.eval.asNode());
 		SPINStatisticsManager.get().addSilently(Collections.singleton(stats));
 	}
 
-	
+
 	@Override
 	public Function create(String uri) {
 		return this;
 	}
 
-	
+
 	@Override
 	public NodeValue exec(Node[] nodes, FunctionEnv env) {
 

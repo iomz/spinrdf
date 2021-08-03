@@ -30,6 +30,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
@@ -42,12 +43,12 @@ import org.apache.jena.sparql.util.Context;
  * graph is wrapped with a ControlledUpdateGraph instead of the default.
  */
 class ControlledUpdateGraphStore extends TransactionalNotSupported implements DatasetGraph {
-	
+
 	private Map<Graph,ControlledUpdateGraph> cugs = new HashMap<Graph,ControlledUpdateGraph>();
-	
+
 	private Dataset dataset;
-	
-	
+
+
 	ControlledUpdateGraphStore(Dataset dataset, Iterable<Graph> controlledGraphs) {
 		this.dataset = dataset;
 		for(Graph graph : controlledGraphs) {
@@ -55,14 +56,14 @@ class ControlledUpdateGraphStore extends TransactionalNotSupported implements Da
 			cugs.put(graph, cug);
 		}
 	}
-	
-	
+
+
     @Override
     public Graph getUnionGraph() {
         return getControlledUpdateGraph(dataset.asDatasetGraph().getUnionGraph());
     }
-    
-	
+
+
 	@Override
 	public void clear() {
 		// TODO Auto-generated method stub
@@ -78,8 +79,8 @@ class ControlledUpdateGraphStore extends TransactionalNotSupported implements Da
 			return graph;
 		}
 	}
-	
-	
+
+
 	public Iterable<ControlledUpdateGraph> getControlledUpdateGraphs() {
 		return cugs.values();
 	}
@@ -182,6 +183,12 @@ class ControlledUpdateGraphStore extends TransactionalNotSupported implements Da
 
 
 	@Override
+    public PrefixMap prefixes() {
+        return dataset.asDatasetGraph().prefixes();
+    }
+
+
+    @Override
 	public Iterator<Quad> find() {
 		return null;
 	}

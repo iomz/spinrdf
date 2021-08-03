@@ -28,6 +28,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.query.TxnType ;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.DatasetGraphBase;
 import org.apache.jena.sparql.core.Quad;
@@ -40,13 +41,13 @@ import org.apache.jena.sparql.core.Transactional.Promote ;
 public class DatasetWrappingDatasetGraph extends DatasetGraphBase {
 
 	private Dataset dataset;
-	
-	
+
+
 	public DatasetWrappingDatasetGraph(Dataset dataset) {
 		this.dataset = dataset;
 	}
 
-	
+
 	@Override
 	public void add(Quad quad) {
 		Graph graph = getGraph(quad);
@@ -104,6 +105,12 @@ public class DatasetWrappingDatasetGraph extends DatasetGraphBase {
 
 
 	@Override
+    public PrefixMap prefixes() {
+        return dataset.asDatasetGraph().prefixes();
+    }
+
+
+    @Override
 	public Graph getDefaultGraph() {
 		Model defaultModel = dataset.getDefaultModel();
 		if(defaultModel != null) {
@@ -126,7 +133,7 @@ public class DatasetWrappingDatasetGraph extends DatasetGraphBase {
 		}
 	}
 
-	
+
 	protected Graph getGraph(Quad quad) {
 		if(quad.isDefaultGraph()) {
 			return getDefaultGraph();
@@ -135,13 +142,13 @@ public class DatasetWrappingDatasetGraph extends DatasetGraphBase {
 			return getGraph(quad.getGraph());
 		}
 	}
-	
+
 	@Override
 	public Lock getLock() {
 		return dataset.getLock();
 	}
 
-	
+
 	@Override
 	public long size() {
 		int count = 0;

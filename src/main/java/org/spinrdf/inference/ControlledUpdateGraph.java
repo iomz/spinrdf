@@ -23,7 +23,6 @@ import java.util.Set;
 import org.apache.jena.graph.Capabilities;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
-import org.apache.jena.graph.GraphStatisticsHandler;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.TransactionHandler;
 import org.apache.jena.graph.Triple;
@@ -43,28 +42,28 @@ import org.apache.jena.util.iterator.ExtendedIterator;
  * added or deleted - the usual Graph policy is to perform those
  * operations regardless of whether a triple was already there.
  * This makes it possible to determine whether further iterations
- * are needed, and which new rdf:type triples have been added. 
+ * are needed, and which new rdf:type triples have been added.
  */
 class ControlledUpdateGraph implements GraphWithPerform {
 
 	private Graph delegate;
-	
+
 	private Set<Triple> addedTriples = new HashSet<Triple>();
-	
+
 	private Set<Triple> deletedTriples = new HashSet<Triple>();
-	
-	
+
+
 	ControlledUpdateGraph(Graph delegate) {
 		this.delegate = delegate;
 	}
 
-	
+
 	@Override
 	public void add(Triple t) throws AddDeniedException {
 		performAdd(t);
 	}
 
-	
+
 	@Override
 	public void clear() {
 		for(Triple triple : find(Node.ANY, Node.ANY, Node.ANY).toList()) {
@@ -91,11 +90,6 @@ class ControlledUpdateGraph implements GraphWithPerform {
 	@Override
 	public GraphEventManager getEventManager() {
 		return delegate.getEventManager();
-	}
-
-	@Override
-	public GraphStatisticsHandler getStatisticsHandler() {
-		return delegate.getStatisticsHandler();
 	}
 
 	@Override
@@ -170,8 +164,8 @@ class ControlledUpdateGraph implements GraphWithPerform {
 		}
 		delegate.delete(t);
 	}
-	
-	
+
+
 	@Override
 	public void remove(Node s, Node p, Node o) {
 		for(Triple triple : find(s, p, o).toList()) {
@@ -183,9 +177,9 @@ class ControlledUpdateGraph implements GraphWithPerform {
 	public Iterable<Triple> getAddedTriples() {
 		return addedTriples;
 	}
-	
-	
+
+
 	public boolean isChanged() {
-		return !addedTriples.isEmpty() || !deletedTriples.isEmpty(); 
+		return !addedTriples.isEmpty() || !deletedTriples.isEmpty();
 	}
 }

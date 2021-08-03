@@ -60,22 +60,22 @@ import org.spinrdf.vocabulary.SPIN;
 
 /**
  * An ARQ function that delegates its functionality into a user-defined
- * SPIN function. 
+ * SPIN function.
  */
 public class SPINARQFunction implements org.apache.jena.sparql.function.Function, SPINFunctionFactory {
-	
+
 	private org.apache.jena.query.Query arqQuery;
-	
+
 	private List<String> argNames = new ArrayList<String>();
-	
+
 	private List<Node> argNodes = new ArrayList<Node>();
-	
+
 	private boolean cachable;
-	
+
 	private String queryString;
-	
+
 	private Function spinFunction;
-	
+
 
 	/**
 	 * Constructs a new SPINARQFunction based on a given SPIN Function.
@@ -84,17 +84,17 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 	 * @param spinFunction  the SPIN function
 	 */
 	public SPINARQFunction(Function spinFunction) {
-		
+
 		this.spinFunction = spinFunction;
-		
+
 		this.cachable = spinFunction.hasProperty(SPIN.cachable, JenaDatatypes.TRUE);
-		
+
 		try {
 			Query spinQuery = (Query) spinFunction.getBody();
 			queryString = ARQFactory.get().createCommandString(spinQuery);
 			arqQuery = ARQFactory.get().createQuery(queryString);
-			
-			// TODO if above three lines never involve writes, then we can move the optimization up 
+
+			// TODO if above three lines never involve writes, then we can move the optimization up
 			// and the finally block onto the outer try, which would be easier to read.
 			JenaUtil.setGraphReadOptimization(true);
 			try {
@@ -115,24 +115,24 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 			throw new IllegalArgumentException("Function " + spinFunction.getURI() + " does not define a valid body", ex);
 		}
 	}
-	
+
 
 	public void build(String uri, ExprList args) {
 	}
 
-	
+
 	public org.apache.jena.sparql.function.Function create(String uri) {
 		return this;
 	}
 
-	
+
 	public NodeValue exec(Binding binding, ExprList args, String uri, FunctionEnv env) {
-		
+
 		Graph activeGraph = env.getActiveGraph();
-		Model model = activeGraph != null ? 
+		Model model = activeGraph != null ?
 				ModelFactory.createModelForGraph(activeGraph) :
 				ModelFactory.createDefaultModel();
-		
+
 		QuerySolutionMap bindings = new QuerySolutionMap();
 		Node t = binding.get(Var.alloc(SPIN.THIS_VAR_NAME));
 		if(t != null) {
@@ -164,18 +164,18 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 	        	}
 			}
 		}
-		
+
 		if(SPINArgumentChecker.get() != null) {
 			SPINArgumentChecker.get().check(spinFunction, bindings);
 		}
-		
-		
+
+
 		Dataset dataset = DatasetImpl.wrap(env.getDataset());
-		
+
 		if(SPINStatisticsManager.get().isRecording() && SPINStatisticsManager.get().isRecordingSPINFunctions()) {
 			StringBuffer sb = new StringBuffer();
 			sb.append("SPIN Function ");
-			sb.append(SSE.format(NodeFactory.createURI(uri), model));
+			sb.append(SSE.str(NodeFactory.createURI(uri), model));
 			sb.append("(");
 			for(int i = 0; i < args.size(); i++) {
 				if(i > 0) {
@@ -233,8 +233,8 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 	public NodeValue executeBody(Model model, QuerySolution bindings) {
 		return executeBody(null, model, bindings);
 	}
-	
-	
+
+
 	public NodeValue executeBody(Dataset dataset, Model defaultModel, QuerySolution bindings) {
 		QueryExecution qexec;
 		if(dataset != null) {
@@ -272,8 +272,8 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 			throw new ExprEvalException("Body must be ASK or SELECT query");
 		}
 	}
-	
-	
+
+
 	/**
 	 * Gets the names of the declared arguments, in order from left to right.
 	 * @return the arguments
@@ -281,12 +281,12 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 	public String[] getArgNames() {
 		return argNames.toArray(new String[0]);
 	}
-	
-	
+
+
 	public Node[] getArgPropertyNodes() {
 		return argNodes.toArray(new Node[0]);
 	}
-	
+
 
 	/**
 	 * Gets the Jena Query object for execution.
@@ -295,8 +295,8 @@ public class SPINARQFunction implements org.apache.jena.sparql.function.Function
 	public org.apache.jena.query.Query getBodyQuery() {
 		return arqQuery;
 	}
-	
-	
+
+
 	public Function getSPINFunction() {
 		return spinFunction;
 	}
